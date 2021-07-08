@@ -1,0 +1,182 @@
+//Creating REST connection in Qlik SaaS
+
+
+1.
+Create new project
+https://console.cloud.google.com/
+
+2.
+Add credentials -> Create API Key & OAuth Client ID
+https://console.cloud.google.com/apis/credentials?organizationId=0&project=sincere-axon-317206
+
+Application type: Desktop App
+
+Client ID: 		1081465627798-k7qoqghg079cl2f8up0fu92g7q6f2t3c.apps.googleusercontent.com
+Client secret: 	0l0jJjs2eJYMeTZyRzJ_-8a9
+
+
+
+3.
+Authorize Requests to the Google Calendar API
+https://developers.google.com/calendar/api/guides/auth	--scope
+https://developers.google.com/identity/protocols/oauth2
+https://developers.google.com/identity/protocols/oauth2/web-server#httprest
+
+
+a)	Download json and rename it token.json
+
+b)	Use it in python script to obtain token.json
+		https://developers.google.com/calendar/api/quickstart/python
+		https://google-auth-oauthlib.readthedocs.io/en/latest/reference/google_auth_oauthlib.flow.html
+
+
+4.
+a)	Create dummy connection
+
+b)	Use token in qlik script (WITH CONNECTION) where vApiKey is ACCESS_TOKEN
+
+https://help.qlik.com/en-US/connectors/Subsystems/REST_connector_help/Content/Connectors_REST/Load-REST-data/Load-data.htm
+
+Example:
+
+SELECT ...
+
+FROM JSON (wrap on) "root" PK "__KEY_root"
+
+WITH CONNECTION (
+
+Url "https://www.googleapis.com/calendar/v3/calendars/$(vCalendarID)?key=$(vApiKey)",
+
+
+HTTPHEADER  "Authorization" "Bearer $(vAccessToken)"
+
+)
+
+
+5.
+Access random API resorces to gain needed information:
+https://developers.google.com/calendar/api/v3/reference/calendarList
+
+
+6.
+execute python script
+locate: C:\Users\Kresimir.Brnja\Documents\Qlik\Sense\Settings.ini
+
+add new line:
+StandardReload=0
+
+
+
+
+7.
+Incremental sync
+https://developers.google.com/calendar/api/guides/sync
+https://developers.google.com/identity/protocols/oauth2/web-server#python_8	-->Incremental authorization
+
+NOT POSSIBLE:
+Full sync required by server
+Sometimes sync tokens are invalidated by the server, for various reasons including token expiration or changes in related ACLs. 
+In such cases, the server will respond to an incremental request with a response code 410. This should trigger a full wipe of the client’s store and a new full sync.
+
+
+
+https://stackoverflow.com/questions/41838248/google-calendar-incremental-sync-with-initial-time-max
+
+
+Here is a sample code from the Using OAuth 2.0 for Web Server Applications used to exchange authorization code for refresh and access tokens, using Python:
+https://stackoverflow.com/questions/59193089/google-calendar-api-continuous-syncing
+
+
+https://www.reddit.com/r/Notion/comments/nlj77o/its_finally_here_unlimited_2way_sync_with_google/
+
+
+everything in qlik - > not implemented
+
+https://community.qlik.com/t5/QlikView-Connectivity/How-to-retrieve-Access-Token-using-REST/td-p/1622208
+
+
+
+
+FULL HOW TO with Python:
+https://karenapp.io/articles/how-to-automate-google-calendar-with-python-using-the-calendar-api/
+
+
+
+
+
+
+
+
+
+
+**old
+
+**The list below quickly summarizes these steps:
+	*Your application identifies the permissions it needs.
+	*Your application redirects the user to Google along with the list of requested permissions.
+	*The user decides whether to grant the permissions to your application.
+	*Your application finds out what the user decided.
+	*If the user granted the requested permissions, your application retrieves tokens needed to make API requests on the user's behalf.
+
+->Sample OAuth 2.0 server response:
+https://accounts.google.com/o/oauth2/v2/auth?
+ scope=https%3A//www.googleapis.com/auth/drive.metadata.readonly&
+ access_type=offline&
+ include_granted_scopes=true&
+ response_type=code&
+ state=state_parameter_passthrough_value&
+ redirect_uri=https://google.com&				//set GET request link
+ client_id=1081465627798-k7qoqghg079cl2f8up0fu92g7q6f2t3c.apps.googleusercontent.com
+ 
+ 
+->Exchange authorization code for refresh and access tokens:
+POST /token HTTP/1.1
+Host: oauth2.googleapis.com
+Content-Type: application/x-www-form-urlencoded
+
+code=4/P7q7W91a-oMsCeLvIaQm6bTrgtp7&
+client_id=1081465627798-k7qoqghg079cl2f8up0fu92g7q6f2t3c.apps.googleusercontent.com&
+client_secret=0l0jJjs2eJYMeTZyRzJ_-8a9&
+redirect_uri=https://google.com&
+grant_type=authorization_code
+
+
+
+
+ 
+ 
+ 
+CMD:
+curl -X --request POST \
+-d --data "code=4/0AX4XfWjFHUd3irRLf5N7U6VcOJAhriGXhM0Ef9Ldl3UeNRuSi38yUX2sIeyXdyu3nBlFkw&client_id=1081465627798-74e0j88jpjuvh3nptd4m93bnvssffbd6.apps.googleusercontent.com&client_secret=7I6vrxOPW3wrm3BprdfzsmuM&redirect_uri=http://localhost&grant_type=authorization_code" \
+-T --url https://accounts.google.com/o/oauth2/v2/auth
+
+
+
+
+https://help.qlik.com/en-US/sense-developer/June2019/Subsystems/CloudAPI/Content/Sense_CloudAPIs/API-Authorize-Request.htm
+https://help.qlik.com/en-US/sense-developer/February2021/Subsystems/RepositoryServiceAPI/Content/Sense_RepositoryServiceAPI/RepositoryServiceAPI-Connect-API-Authenticate-Reqs.htm
+
+
+
+
+
+
+
+
+
+
+*********************************************Links*********************************************
+Qlik how to:
+https://community.qlik.com/t5/QlikView-Connectivity/How-to-retrieve-Access-Token-using-REST/td-p/1622208
+
+Rest explained by example:
+https://platform.relativity.com/10.3/Content/REST_API/REST_API_authentication.htm
+
+Execute cURL in Qlik Sense:
+https://community.qlik.com/t5/Connectivity-Data-Prep/Executing-Curl-Command-in-Qlik-Sense/m-p/138422
+https://support.qlik.com/articles/000042732
+https://community.qlik.com/t5/Documents/How-do-I-call-QlikSense-APIs-with-curl-QMC-Task-load/ta-p/1477436
+
+Qlik Developer REST:
+https://qlik.dev/apis/rest/items
